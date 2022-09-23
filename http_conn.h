@@ -1,17 +1,21 @@
+#ifndef HTTP_CONN_H
+#define HTTP_CONN_H
+
 #include"threadpool.h"
 #include"locker.h"
 #include<sys/socket.h>
 #include<arpa/inet.h>
+#include<sys/stat.h>
 
 
 class http_conn
 {
 private:
-    int m_sockfd;
+    //int m_sockfd;
     sockaddr_in m_address;
-    static int m_epollfd;
-    static int user_count;
+    
 
+    static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
     static const int WRITE_BUFFER_SIZE = 1024;
     int m_read_idx;
@@ -21,7 +25,20 @@ private:
 
     char m_read_buf[READ_BUFFER_SIZE];
     char m_write_buf[WRITE_BUFFER_SIZE];
+    char m_real_file[FILENAME_MAX];
     
+    char *m_url;
+    char *m_version;
+    char *m_host;
+    int m_content_length;
+    bool m_linger;
+    int cgi;        //是否启用的POST
+    char *m_string; //存储请求头数据
+    struct iovec m_iv[2];
+    int m_iv_count;
+    struct stat m_file_stat;
+    char *m_file_address;
+
 
     //报文的请求方法，本项目只用到GET和POST
     enum METHOD{GET=0,POST,HEAD,PUT,DELETE,TRACE,OPTIONS,CONNECT,PATH};
@@ -35,8 +52,13 @@ private:
     CHECK_STATE m_check_state;
     METHOD m_method;
 
+    int bytes_to_send;
+    int bytes_have_send;
+
 
 public:
+    int m_sockfd;
+
     http_conn(){};
     ~http_conn(){};
     static int m_epollfd;
@@ -57,7 +79,26 @@ public:
     HTTP_CODE parse_request_head(char* text);
     HTTP_CODE parse_request_content(char* text);
 
+    bool process_write(HTTP_CODE ret);
+    bool write();
+
+    void unmap();
+
     inline char* get_line(){return m_read_buf+m_start_line;}
+
+    bool add_response(const char* format,...);
+    bool add_content_length(int content_len);
+    bool add_content_type();
+    bool add_linger();
+    bool add_blank_line();
+    bool add_content(const char* content);
+
+    bool add_status_line(int status,const char* titles);
+    bool add_headers(int content_len);
+
+
+
+
 
 
 
@@ -65,3 +106,6 @@ public:
 };
 
 
+
+
+#endif
