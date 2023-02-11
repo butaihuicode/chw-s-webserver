@@ -1,16 +1,17 @@
 #include "database.h"
 
-MySQL::MySQL(){
-    conn_=mysql_init(NULL);
+MySQL::MySQL()
+{
+    conn_ = mysql_init(NULL);
 }
 
-
-MySQL::~MySQL(){
-    if(conn_!=nullptr){
+MySQL::~MySQL()
+{
+    if (conn_ != nullptr)
+    {
         mysql_close(conn_);
     }
 }
-
 
 /* bool MySQL::Connect(){
     MySQLptr conn=mysql_real_connect(conn_,HOST.c_str(),USER.c_str(),
@@ -26,38 +27,45 @@ MySQL::~MySQL(){
     return conn;
 } */
 
-
-bool MySQL::Update(const std::string& sql){
-    if(mysql_query(conn_,sql.c_str())!=0){
-        //log
+bool MySQL::Update(const std::string &sql)
+{
+    if (mysql_query(conn_, sql.c_str()) != 0)
+    {
+        // log
         return false;
     }
     return true;
 }
 
-MYSQL_RES* MySQL::Query(const std::string& sql){
-    if(mysql_query(conn_,sql.c_str())!=0){
-        //log
+MYSQL_RES *MySQL::Query(const std::string &sql)
+{
+    if (mysql_query(conn_, sql.c_str()) != 0)
+    {
+        // log
         return nullptr;
     }
-    result_=mysql_use_result(conn_);
+    result_ = mysql_use_result(conn_);
     return result_;
 }
 
-MYSQL_RES* MySQL::Query(const std::string&& sql){
-    if(mysql_query(conn_,sql.c_str())!=0){
-        //log
+MYSQL_RES *MySQL::Query(const std::string &&sql)
+{
+    if (mysql_query(conn_, sql.c_str()) != 0)
+    {
+        // log
         return nullptr;
     }
-    result_=mysql_use_result(conn_);
+    result_ = mysql_use_result(conn_);
     return result_;
 }
- 
-void MySQL::FreeResult(){
+
+void MySQL::FreeResult()
+{
     mysql_free_result(result_);
-    result_=nullptr;
+    result_ = nullptr;
 }
 
-MySQLptr MySQL::GetConnection()const{
+MySQLptr MySQL::GetConnection() const
+{
     return conn_;
 }

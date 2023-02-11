@@ -1,3 +1,4 @@
+/*
 #ifndef ThreadPool_H
 #define ThreadPool_H
 
@@ -11,17 +12,17 @@
 #include <condition_variable>
 #include <semaphore.h>
 #include "lockerV2.h"
+
 class ThreadPool
 {
 public:
     // 构造函数
     explicit ThreadPool(int t_num, int j_num=20)
-    :m_threadNum(t_num), m_queMaxSize(j_num), 
-    m_resource(0, 0), m_resEmpty(0, m_queMaxSize), m_mtx(0,1), m_stop(false) 
+    :m_threadNum(t_num), m_queMaxSize(j_num),
+    m_resource(0, 0), m_resEmpty(0, m_queMaxSize), m_mtx(0,1), m_stop(false)
     {
         for(int i = 0; i < m_threadNum; ++i)
         {
-            
             std::thread([i,this]()
             {
                 while(!m_stop)
@@ -72,7 +73,7 @@ private:
     std::vector<std::thread> m_workThreads;
 };
 #endif
-/*
+
  //设计时候不要想别的类，只想这个类接受什么东西，怎么做
 class ThreadPool
 {
@@ -124,3 +125,86 @@ private:
 };
 
 #endif */
+
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
+
+#include <thread>
+#include <condition_variable>
+#include <mutex>
+#include <vector>
+#include <queue>
+#include <future>
+
+class ThreadPool
+{
+private:
+    bool m_stop;
+    std::vector<std::thread> m_thread;
+    std::queue<std::function<void()>> tasks;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+
+public:
+    explicit ThreadPool(size_t threadNumber, int a) : m_stop(false)
+    {
+        for (size_t i = 0; i < threadNumber; ++i)
+        {
+            m_thread.emplace_back(
+                [this]()
+                {
+                    for (;;)
+                    {
+                        std::function<void()> task;
+                        {
+                            std::unique_lock<std::mutex> lk(m_mutex);
+                            m_cv.wait(lk, [this]()
+                                      { return m_stop || !tasks.empty(); });
+                            if (m_stop && tasks.empty())
+                                return;
+                            task = std::move(tasks.front());
+                            tasks.pop();
+                        }
+                        task();
+                    }
+                });
+        }
+    }
+
+    ThreadPool(const ThreadPool &) = delete;
+    ThreadPool(ThreadPool &&) = delete;
+
+    ThreadPool &operator=(const ThreadPool &) = delete;
+    ThreadPool &operator=(ThreadPool &&) = delete;
+
+    ~ThreadPool()
+    {
+        {
+            std::unique_lock<std::mutex> lk(m_mutex);
+            m_stop = true;
+        }
+        m_cv.notify_all();
+        for (auto &threads : m_thread)
+        {
+            threads.join();
+        }
+    }
+
+    template <typename F, typename... Args>
+    auto Append(F &&f, Args &&...args) -> std::future<decltype(f(args...))>
+    {
+        auto taskPtr = std::make_shared<std::packaged_task<decltype(f(args...))()>>(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        {
+            std::unique_lock<std::mutex> lk(m_mutex);
+            if (m_stop)
+                throw std::runtime_error("submit on stopped ThreadPool");
+            tasks.emplace([taskPtr]()
+                          { (*taskPtr)(); });
+        }
+        m_cv.notify_one();
+        return taskPtr->get_future();
+    }
+};
+
+#endif // THREADPOOL_H

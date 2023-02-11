@@ -121,5 +121,4 @@ public:
 
 #endif
 
-
-#endif //VSCODE_PROJECT_LOCKER_H
+#endif // VSCODE_PROJECT_LOCKER_H

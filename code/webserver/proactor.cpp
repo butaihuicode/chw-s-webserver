@@ -3,49 +3,53 @@
 //
 #include "proactor.h"
 
-Proactor::Proactor(int port,int timeout,int thread_num,int event_mode)
+Proactor::Proactor(int port, int timeout, int thread_num, int event_mode)
 {
-    port_=port;
-    m_timeout_ms_=timeout;
-    timer_=std::make_unique<TimeManager>();
-    thread_pool_=std::make_unique<ThreadPool>(thread_num,200);
-    epoller_=std::make_unique<Epoller>();
-    //getcwd(m_src_dir_,sizeof (m_src_dir_));
-    //strcat(m_src_dir_, "/resources");
-    strcpy(m_src_dir_,"/media/psf/Home/Documents/vscode project/Httpserver_final/resources/");
-    HttpConn::m_url=m_src_dir_;
+    port_ = port;
+    m_timeout_ms_ = timeout;
+    timer_ = std::make_unique<TimeManager>();
+    thread_pool_ = std::make_unique<ThreadPool>(thread_num, 200);
+    epoller_ = std::make_unique<Epoller>();
+    // getcwd(m_src_dir_,sizeof (m_src_dir_));
+    // strcat(m_src_dir_, "/resources");
+    strcpy(m_src_dir_, "/media/psf/Home/Documents/vscode project/Httpserver_final/resources/");
+    HttpConn::m_url = m_src_dir_;
     InitEvents(event_mode);
-    is_close_=(!InitSocket());
+    is_close_ = (!InitSocket());
 }
 
-void Proactor::HandleRead(HttpConn *client) {
-    int m_errno=-1;
-    ssize_t ret=client->ReadBuffer(&m_errno);
-    if(ret<0 && m_errno!=(EAGAIN|EWOULDBLOCK))
+void Proactor::HandleRead(HttpConn *client)
+{
+    int m_errno = -1;
+    ssize_t ret = client->ReadBuffer(&m_errno);
+    if (ret < 0 && m_errno != (EAGAIN | EWOULDBLOCK))
     {
-        //log
+        // log
         CloseConn(client);
     }
-    //客户端进行活动时应该更新定时器
-    if(m_timeout_ms_>0)
+    // 客户端进行活动时应该更新定时器
+    if (m_timeout_ms_ > 0)
         ExtentTime(client->get_fd());
-    //模拟proactor模式，主线程读好的数据在client.m_read_buf,处理请求报文和准备响应数据在子线程完成
-    thread_pool_->Append(std::bind(&Proactor::OnRead,this,client));
+    // 模拟proactor模式，主线程读好的数据在client.m_read_buf,处理请求报文和准备响应数据在子线程完成
+    thread_pool_->Append(std::bind(&Proactor::OnRead, this, client));
 }
 
-void Proactor::HandleWrite(HttpConn *client) {
+void Proactor::HandleWrite(HttpConn *client)
+{
     OnWrite(client);
 }
 
-void Proactor::OnRead(HttpConn *client) {
+void Proactor::OnRead(HttpConn *client)
+{
     Process(client);
 }
 
-void Proactor::OnWrite(HttpConn *client) {
-    //现在读好的数据在iov和mmap中
-    //模拟proactor模式，主线程处理，不需要再把写事件加入请求队列了，少了一次调用epoll_wait的开销
-    int m_errno=-1;
-    ssize_t ret=client->WriteBuffer(&m_errno);
+void Proactor::OnWrite(HttpConn *client)
+{
+    // 现在读好的数据在iov和mmap中
+    // 模拟proactor模式，主线程处理，不需要再把写事件加入请求队列了，少了一次调用epoll_wait的开销
+    int m_errno = -1;
+    ssize_t ret = client->WriteBuffer(&m_errno);
     ExtentTime(client->get_fd());
     // 根据发送数据的长度ret来判断服务器发送数据是否正常
     /*
@@ -67,23 +71,23 @@ void Proactor::OnWrite(HttpConn *client) {
                 - EAGAIN：让服务器再一次发送数据
             - 其他错误就不用再重发了
     */
-    if(ret>0)
+    if (ret > 0)
     {
-        //写成功了
-        //如果是长连接，应该看看缓冲区还有没有下一个请求，有继续响应，没有等待下一次发送重置EPOLLIN事件，即Process函数
-        if(client->is_keep_alive())
+        // 写成功了
+        // 如果是长连接，应该看看缓冲区还有没有下一个请求，有继续响应，没有等待下一次发送重置EPOLLIN事件，即Process函数
+        if (client->is_keep_alive())
         {
             Process(client);
         }
-            //非keepalive，一次连接只处理一个请求，不管怎样都要关闭连接。
+        // 非keepalive，一次连接只处理一个请求，不管怎样都要关闭连接。
         else
         {
             CloseConn(client);
         }
     }
-    else if(client->WriteableBytes()==0)
+    else if (client->WriteableBytes() == 0)
     {
-        if(client->is_keep_alive())
+        if (client->is_keep_alive())
         {
             Process(client);
         }
@@ -92,13 +96,13 @@ void Proactor::OnWrite(HttpConn *client) {
             CloseConn(client);
         }
     }
-    else if(ret<0)
+    else if (ret < 0)
     {
-        //写错误
-        if(m_errno==(EAGAIN|EWOULDBLOCK))
+        // 写错误
+        if (m_errno == (EAGAIN | EWOULDBLOCK))
         {
-            //写不出去，重写
-            epoller_->ModFd(client->get_fd(),connect_event_|EPOLLOUT);
+            // 写不出去，重写
+            epoller_->ModFd(client->get_fd(), connect_event_ | EPOLLOUT);
         }
         else
         {
@@ -106,4 +110,3 @@ void Proactor::OnWrite(HttpConn *client) {
         }
     }
 }
-

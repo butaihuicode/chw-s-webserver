@@ -23,57 +23,58 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
-
-class HttpServer{
+class HttpServer
+{
 public:
     HttpServer(){};
-    explicit HttpServer(int port,int timeout=60,int thread_num=8,int event_mode=1);
-    virtual ~HttpServer()=default;
+    explicit HttpServer(int port, int timeout = 60, int thread_num = 8, int event_mode = 1);
+    virtual ~HttpServer() = default;
 
-    //启动服务器
+    // 启动服务器
     void start();
 
 protected:
-    void CloseConn(HttpConn* client);
-    void Process(HttpConn* client);
-    //刷新定时器时间
+    void CloseConn(HttpConn *client);
+    void Process(HttpConn *client);
+    // 刷新定时器时间
     void ExtentTime(int sockfd);
 
     std::unique_ptr<Epoller> epoller_;
     std::unique_ptr<ThreadPool> thread_pool_;
     std::shared_ptr<TimeManager> timer_;
-    std::unordered_map<int,HttpConn> m_clients_;
-    //预先设置的事件模式
+    std::unordered_map<int, HttpConn> m_clients_;
+    // 预先设置的事件模式
     uint32_t listen_event_;
     uint32_t connect_event_;
 
-    //定时器的超时时间
+    // 定时器的超时时间
     int m_timeout_ms_;
+
 protected:
-    //创建listenfd
+    // 创建listenfd
     bool InitSocket();
-    //封装ET的各个选项
+    // 封装ET的各个选项
     void InitEvents(int mode);
 
-    //epoll同时监听listenfd和connfd，因此要采取的行动也会有所不同
+    // epoll同时监听listenfd和connfd，因此要采取的行动也会有所不同
     void HandleConn();
-    virtual void HandleRead(HttpConn* client)=0;
-    virtual void HandleWrite(HttpConn* client)=0;
-    //线程主控函数
-    virtual void OnWrite(HttpConn* client)=0;
-    virtual void OnRead(HttpConn* client)=0;
-    //添加客户端连接
-    void AddClientConnect(int sockfd,struct sockaddr_in& sockaddrIn);
+    virtual void HandleRead(HttpConn *client) = 0;
+    virtual void HandleWrite(HttpConn *client) = 0;
+    // 线程主控函数
+    virtual void OnWrite(HttpConn *client) = 0;
+    virtual void OnRead(HttpConn *client) = 0;
+    // 添加客户端连接
+    void AddClientConnect(int sockfd, struct sockaddr_in &sockaddrIn);
 
     void SetNonBlock(int fd);
 
-    inline int GetErrNo(){return errno;}
-    void SendError(int sockfd,const char* info) const;
+    inline int GetErrNo() { return errno; }
+    void SendError(int sockfd, const char *info) const;
 
-    const static int MAX_FD=65535;
-    const static int LFD_ET=0;
-    const static int CFD_ET=1;
-    const static int ALL_ET=2;
+    const static int MAX_FD = 65535;
+    const static int LFD_ET = 0;
+    const static int CFD_ET = 1;
+    const static int ALL_ET = 2;
 
     int port_;
     int listenfd_;
@@ -81,13 +82,8 @@ protected:
     char m_src_dir_[200];
 
     bool is_close_;
-
-
-
-
 };
 #endif
-
 
 /*
 class HttpServer{
@@ -158,4 +154,3 @@ private:
     std::unordered_map<int,HttpConn> m_clients_;
 };
 */
-

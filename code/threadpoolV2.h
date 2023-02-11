@@ -1,70 +1,84 @@
-#ifndef __THREADPOOLV5_H__
-#define __THREADPOOLV5_H__
-#include <queue>
-#include <functional>
-#include <iostream>
+
+
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
+
 #include <thread>
-#include <vector>
-#include <mutex>
 #include <condition_variable>
-#include <semaphore.h>
-#include "lockerV2.h"
+#include <mutex>
+#include <vector>
+#include <queue>
+#include <future>
+
 class ThreadPool
 {
+private:
+    bool m_stop;
+    std::vector<std::thread> m_thread;
+    std::queue<std::function<void()>> tasks;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+
 public:
-    // 构造函数
-    explicit ThreadPool(int t_num, int j_num=10)
-    :m_threadNum(t_num), m_queMaxSize(j_num), 
-    m_resource(0, 0), m_resEmpty(0, m_queMaxSize), m_mtx(0,1), m_stop(false) 
+    explicit ThreadPool(size_t threadNumber) : m_stop(false)
     {
-        for(int i = 0; i < m_threadNum; ++i)
+        for (size_t i = 0; i < threadNumber; ++i)
         {
-            std::thread([this]()
-            {
-                while(!m_stop)
+            m_thread.emplace_back(
+                [this]()
                 {
-                    m_resource.wait();
-                    m_mtx.wait();
-
-                    auto todoTask = m_jobQueue.front();
-                    m_jobQueue.pop();
-
-                    m_resEmpty.post();
-                    m_mtx.post();
-
-                    todoTask();
-                }
-            }).detach();
+                    for (;;)
+                    {
+                        std::function<void()> task;
+                        {
+                            std::unique_lock<std::mutex> lk(m_mutex);
+                            m_cv.wait(lk, [this]()
+                                      { return m_stop || !tasks.empty(); });
+                            if (m_stop && tasks.empty())
+                                return;
+                            task = std::move(tasks.front());
+                            tasks.pop();
+                        }
+                        task();
+                    }
+                });
         }
     }
-    // 析构函数
+
+    ThreadPool(const ThreadPool &) = delete;
+    ThreadPool(ThreadPool &&) = delete;
+
+    ThreadPool &operator=(const ThreadPool &) = delete;
+    ThreadPool &operator=(ThreadPool &&) = delete;
+
     ~ThreadPool()
     {
-        m_stop = true;
+        {
+            std::unique_lock<std::mutex> lk(m_mutex);
+            m_stop = true;
+        }
+        m_cv.notify_all();
+        for (auto &threads : m_thread)
+        {
+            threads.join();
+        }
     }
-    // 对外接口：向线程池中添加任务
-    template <class F>
-    void append(F &&task)
+
+    template <typename F, typename... Args>
+    auto Append(F &&f, Args &&...args) -> std::future<decltype(f(args...))>
     {
-        m_resEmpty.wait();
-        m_mtx.wait();
-
-        m_jobQueue.emplace(std::forward<F>(task));
-
-        m_resource.post();
-        m_mtx.post();
+        auto taskPtr = std::make_shared<std::packaged_task<decltype(f(args...))()>>(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        {
+            std::unique_lock<std::mutex> lk(m_mutex);
+            if (m_stop)
+                throw std::runtime_error("submit on stopped ThreadPool");
+            tasks.emplace([taskPtr]()
+                          { (*taskPtr)(); });
+        }
+        m_cv.notify_one();
+        return taskPtr->get_future();
     }
-    // 删除我们不需要的拷贝函数
-    ThreadPool(const ThreadPool &) = delete;
-    ThreadPool &operator=(const ThreadPool &) = delete;
-private:
-    int m_threadNum;
-    int m_queMaxSize;
-    Locker m_resource;
-    Locker m_resEmpty;
-    Locker m_mtx;
-    bool m_stop;
-    std::queue<std::function<void()>> m_jobQueue;
-    std::vector<std::thread> m_workThreads;
 };
-#endif
+
+#endif // THREADPOOL_H

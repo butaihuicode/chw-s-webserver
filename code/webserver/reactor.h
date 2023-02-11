@@ -7,22 +7,18 @@
 
 #include "httpserver.h"
 
-class Reactor:public HttpServer{
+class Reactor : public HttpServer
+{
 
 public:
-    explicit Reactor(int port,int timeout=60,int thread_num=8,int event_mode=1);
+    explicit Reactor(int port, int timeout = 60, int thread_num = 8, int event_mode = 1);
     ~Reactor(){};
 
-    void HandleRead(HttpConn* client) override;
-    void HandleWrite(HttpConn* client) override;
+    void HandleRead(HttpConn *client) override;
+    void HandleWrite(HttpConn *client) override;
 
-    void OnRead(HttpConn* client) override;
-    void OnWrite(HttpConn* client) override;
+    void OnRead(HttpConn *client) override;
+    void OnWrite(HttpConn *client) override;
 };
 
-
-
-
-
-
-#endif //HTTPSERVER_FINAL_REACTOR_H
+#endif // HTTPSERVER_FINAL_REACTOR_H
