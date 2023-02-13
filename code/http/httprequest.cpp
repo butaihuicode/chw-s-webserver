@@ -295,7 +295,7 @@ void HttpRequest::ParseUrlEncodeed()
             m_body[i] = ' ';
             break;
         case '%':
-            num = convertHex(m_body[i + 1] * 16 + convertHex(m_body[i + 2]));
+            num = ConvertHex(m_body[i + 1] * 16 + ConvertHex(m_body[i + 2]));
             m_body[i + 2] = num % 10 + '0';
             m_body[i + 1] = num / 10 + '0';
             i += 2;
