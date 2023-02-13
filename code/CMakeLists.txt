@@ -1,13 +1,18 @@
-set(APP_SRC main.cpp)
 
-add_subdirectory(http )
-add_subdirectory(buffer ) 
-add_subdirectory(epoller)
-add_subdirectory(timer)
-add_subdirectory(database)
-add_subdirectory(webserver)
+#out-of-source
+cmake_minimum_required(VERSION 3.0)
+project(HttpServer)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-add_executable(${PROJECT_NAME} ${APP_SRC})
-target_link_libraries(${PROJECT_NAME} WEBSERVER DATABASE HTTP TIMER BUFFER 
-EPOLLER)
-set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${ROOT_DIR}/bin")
+#find_package(Jsoncpp)
+set(ROOT_DIR ${PROJECT_SOURCE_DIR})
+
+add_definitions(-Wall -g)
+add_definitions(-L/usr/lib/aarch64-linux-gnu -lmysqlclient -lzstd -lssl -lcrypto -lresolv -lm)
+
+
+add_subdirectory(code)
+
+
+
+
