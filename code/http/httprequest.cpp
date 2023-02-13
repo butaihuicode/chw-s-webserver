@@ -388,11 +388,9 @@ void HttpRequest::WriteJson(const string &file, Json::Value root)
     ofs.close();
 }
 
-// 判断register和post谁先？浏览器怎么知道是post？
-// 网址先输入了，get到网页，点提交时候才是post
+// 判断register和post谁先？浏览器怎么知道是post？--网址先输入了，get到网页，点提交时候才是post
 void HttpRequest::HandleUserInfo()
 {
-    // 怎么知道是username？
     std::string name = m_user_info_["username"];
     std::string password = m_user_info_["password"];
 
