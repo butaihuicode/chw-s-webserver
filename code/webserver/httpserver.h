@@ -14,6 +14,7 @@
 #include "../timer/timer.h"
 #include "../threadpool.h"
 #include "../locker.h"
+#include "../log/log.h"
 #include <sys/socket.h>
 #include <cerrno>
 #include <arpa/inet.h>
@@ -27,7 +28,7 @@ class HttpServer
 {
 public:
     HttpServer(){};
-    explicit HttpServer(int port, int timeout = 60, int thread_num = 8, int event_mode = 1);
+    explicit HttpServer(int port, int timeout = 60, int thread_num = 8, int event_mode = 1,int loglevel = 1 );
     virtual ~HttpServer() = default;
 
     // 启动服务器

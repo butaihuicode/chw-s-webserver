@@ -3,20 +3,6 @@
 //
 #include "proactor.h"
 
-Proactor::Proactor(int port, int timeout, int thread_num, int event_mode)
-{
-    port_ = port;
-    m_timeout_ms_ = timeout;
-    timer_ = std::make_unique<TimeManager>();
-    thread_pool_ = std::make_unique<ThreadPool>(thread_num, 200);
-    epoller_ = std::make_unique<Epoller>();
-    // getcwd(m_src_dir_,sizeof (m_src_dir_));
-    // strcat(m_src_dir_, "/resources");
-    strcpy(m_src_dir_, "/media/psf/Home/Documents/vscode project/Httpserver_final/resources/");
-    HttpConn::m_url = m_src_dir_;
-    InitEvents(event_mode);
-    is_close_ = (!InitSocket());
-}
 
 void Proactor::HandleRead(HttpConn *client)
 {

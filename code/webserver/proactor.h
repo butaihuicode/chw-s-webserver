@@ -10,7 +10,7 @@ class Proactor : public HttpServer
 {
 
 public:
-    explicit Proactor(int port, int timeout = 60, int thread_num = 8, int event_mode = 1,int loglevel = 1);
+    explicit Proactor(int port, int timeout = 60, int thread_num = 8, int event_mode = 1,int loglevel = 1){};
     ~Proactor(){};
     void HandleRead(HttpConn *client) override;
     void HandleWrite(HttpConn *client) override;

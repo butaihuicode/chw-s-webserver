@@ -11,7 +11,7 @@ class Reactor : public HttpServer
 {
 
 public:
-    explicit Reactor(int port, int timeout = 60, int thread_num = 8, int event_mode = 1);
+    explicit Reactor(int port, int timeout = 60, int thread_num = 8, int event_mode = 1,int loglevel =1){};
     ~Reactor(){};
 
     void HandleRead(HttpConn *client) override;
