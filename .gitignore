@@ -1,0 +1,5 @@
+.vscode/
+build
+bin
+cmake-build-debug
+.log_file
