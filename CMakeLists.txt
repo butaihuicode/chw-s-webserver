@@ -8,6 +8,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(ROOT_DIR ${PROJECT_SOURCE_DIR})
 
 add_definitions(-Wall -g)
+add_definitions(-ljsoncpp)
 add_definitions(-L/usr/lib/aarch64-linux-gnu -lmysqlclient -lzstd -lssl -lcrypto -lresolv -lm)
 
 
