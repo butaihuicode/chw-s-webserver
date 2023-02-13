@@ -12,7 +12,7 @@ bool UserModel::Insert(User &user)
     sprintf(sql, "Insert Into User(username,password) values('%s','%s')",
             user.GetName().c_str(), user.GetPassword().c_str());
     MySQL mysql;
-    // 不用连接，因为相当于是从连接池取出的连接，直接用就好
+    // 不用连接，执行Update会自动从连接池取出连接，直接用就好
     bool ret = mysql.Update(std::string(sql));
     return ret;
 }
@@ -29,8 +29,10 @@ User UserModel::Query(const std::string &name)
     {
         // mysql_row is char**
         MYSQL_ROW row = mysql_fetch_row(res);
-        user.SetName(row[0]);
-        user.SetPassword(row[1]);
+        if(row != nullptr){
+            user.SetName(row[0]);
+            user.SetPassword(row[1]);
+        }
     }
     mysql.FreeResult();
     return user;

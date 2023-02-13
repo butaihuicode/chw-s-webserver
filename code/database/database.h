@@ -7,6 +7,8 @@
 
 #include <mysql/mysql.h>
 #include <string>
+#include "sqlpoolraii.h"
+#include "../log/log.h"
 
 /* const static std::string HOST = "127.0.0.1";
 const static std::string USER = "root";
@@ -18,7 +20,7 @@ typedef MYSQL *MySQLptr;
 class MySQL
 {
 public:
-    MySQL();
+    MySQL(){};
     ~MySQL();
 
     // 连接

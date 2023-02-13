@@ -1,17 +1,5 @@
 #include "database.h"
 
-MySQL::MySQL()
-{
-    conn_ = mysql_init(NULL);
-}
-
-MySQL::~MySQL()
-{
-    if (conn_ != nullptr)
-    {
-        mysql_close(conn_);
-    }
-}
 
 /* bool MySQL::Connect(){
     MySQLptr conn=mysql_real_connect(conn_,HOST.c_str(),USER.c_str(),
@@ -29,9 +17,12 @@ MySQL::~MySQL()
 
 bool MySQL::Update(const std::string &sql)
 {
+    //局部对象，结束后连接池资源自动释放
+    //conn_是传出参数
+    SqlPoolRaii spr(conn_, SqlPool::GetInstance());
     if (mysql_query(conn_, sql.c_str()) != 0)
     {
-        // log
+        LOG_ERROR("更新失败");
         return false;
     }
     return true;
@@ -39,9 +30,10 @@ bool MySQL::Update(const std::string &sql)
 
 MYSQL_RES *MySQL::Query(const std::string &sql)
 {
+    SqlPoolRaii spr(conn_, SqlPool::GetInstance());
     if (mysql_query(conn_, sql.c_str()) != 0)
     {
-        // log
+        LOG_ERROR("查询失败");
         return nullptr;
     }
     result_ = mysql_use_result(conn_);
@@ -68,4 +60,8 @@ void MySQL::FreeResult()
 MySQLptr MySQL::GetConnection() const
 {
     return conn_;
+}
+
+MySQL::~MySQL() {
+    FreeResult();
 }

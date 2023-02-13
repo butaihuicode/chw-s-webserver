@@ -13,10 +13,12 @@ typedef MYSQL *MySQLptr;
 class SqlPoolRaii
 {
 public:
-    SqlPoolRaii(SqlPool *pool) : pool_(pool)
+    //conn是个传出参数
+    SqlPoolRaii(MySQLptr &conn,SqlPool *pool) : pool_(pool)
     {
         assert(pool_ != nullptr);
         conn_ = pool_->GetConn();
+        conn_=conn;
     };
     ~SqlPoolRaii()
     {
