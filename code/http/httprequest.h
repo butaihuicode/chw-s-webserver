@@ -19,6 +19,7 @@
 #include <sstream>
 #include <ios>
 #include <dirent.h>
+#include <json/json.h>
 
 // 当前解析状态
 enum PARSE_STATE
