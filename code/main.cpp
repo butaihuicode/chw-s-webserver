@@ -36,7 +36,12 @@ int main(int argc, char *argv[])
     int timeout = -1;
     int triMode = 1;
     int threadNum = 8;
+    int loglevel=1;
 
+    if(argc > 6)
+    {
+        loglevel=atoi(argv[6]);
+    }
     if (argc > 5)
     {
         triMode = atoi(argv[5]);
@@ -51,20 +56,13 @@ int main(int argc, char *argv[])
     }
     if (ServerMode == 1)
     {
-        Reactor httpServer(port, timeout, threadNum, triMode);
+        Reactor httpServer(port, timeout, threadNum, triMode,loglevel);
         httpServer.start();
     }
     else if (ServerMode == 2)
     {
-        Proactor httpServer(port, timeout, threadNum, triMode);
+        Proactor httpServer(port, timeout, threadNum, triMode,loglevel);
         httpServer.start();
     }
     return 0;
 }
-
-/* int main()
-{
-    ThreadPool pool(8);
-
-    return 0;
-} */
