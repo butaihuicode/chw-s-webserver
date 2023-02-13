@@ -69,15 +69,13 @@ private:
     // 获取线程id
     pid_t _gettid() { return syscall(SYS_gettid); }
     // 缓冲区：位于进程的堆区的缓冲区
-    std::queue<std::string> _bufferA;
+    std::queue<std::string> buffer_;
     // 缓冲区的大小限制
-    // 一条log消息，给他算最大128个字节把，buffer中最多装100000条吧
-    // 所以一个buffer装满会占据内存大概1MB的空间，能接受的吧
-    const int MAX_QUEUE_SIZE = 100000;
+    const int MAX_QUEUE_SIZE = 99999;
     // 使用互斥锁+条件变量
-    std::mutex _queueMtx;
-    std::condition_variable _queueCond;
-    std::condition_variable _writeCond;
+    std::mutex write_cond_tx;
+    std::condition_variable queue_cond_;
+    std::condition_variable write_cond_;
 
     // 线程的等级
     int m_level;
@@ -87,8 +85,8 @@ private:
     void logThreadFunc1(int);
     void logThreadFunc2(int);
     // 日志线程
-    std::thread _logThread1;
-    std::thread _logThread2;
+    std::thread log_thread1_;
+    std::thread log_thread2_;
 };
 
 // 定义方便使用的宏

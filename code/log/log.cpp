@@ -15,8 +15,8 @@ Log::Log()
         _openFile = fopen(filePath, "w");
     }
     // 启动日志线程
-    _logThread1 = std::thread(&Log::logThreadFunc1, this, 1);
-    _logThread2 = std::thread(&Log::logThreadFunc2, this, 1);
+    log_thread1_ = std::thread(&Log::logThreadFunc1, this, 1);
+    log_thread2_ = std::thread(&Log::logThreadFunc2, this, 1);
     // 设置线程的等级
     m_level = 1; // 默认为1：BASE等级
 }
@@ -27,8 +27,8 @@ Log::~Log()
     日志线程，只是调用这个实例的程序的一个子线程，如果调用者要结束进程了
     需要等待这个日志线程结束后再退出
     */
-    if (_logThread1.joinable()) { _logThread1.join(); }
-    if (_logThread2.joinable()) { _logThread2.join(); }
+    if (log_thread1_.joinable()) { log_thread1_.join(); }
+    if (log_thread2_.joinable()) { log_thread2_.join(); }
 }
 // 单例模式
 Log *Log::getInstance()
@@ -92,18 +92,17 @@ void Log::WriteMsg(int level, const char *filename, const char *func, int line,
         msg.append(func);
         // 并发访问，上锁
         {
-            std::unique_lock<std::mutex> lck(_queueMtx);
-            while (_bufferA.size() >= MAX_QUEUE_SIZE)
+            std::unique_lock<std::mutex> lck(queue_mtx);
+            while (buffer_.size() >= MAX_QUEUE_SIZE)
             {
-                _writeCond.notify_one();
-                _queueCond.wait(lck);
+                write_cond_.notify_one();
+                queue_cond_.wait(lck);
             }
-            _bufferA.push(msg);
+            buffer_.push(msg);
         }
     }
 }
 
-// 获取时间：20220419 21:06:13.153335Z
 void Log::getDate(char *date)
 {
     struct timeval pt;
@@ -117,25 +116,24 @@ void Log::getDate(char *date)
 void Log::WriteToFile()
 {
     // 上锁
-    std::unique_lock<std::mutex> lck(_queueMtx);
-    if (_bufferA.empty())
+    std::unique_lock<std::mutex> lck(queue_mtx);
+    if (buffer_.empty())
     {
         return;
     }
-    while (!_bufferA.empty())
+    while (!buffer_.empty())
     {
-        std::string msg(_bufferA.front());
-        _bufferA.pop();
+        std::string msg(buffer_.front());
+        buffer_.pop();
         fprintf(_openFile, "%s\r\n", msg.c_str());
         fflush(_openFile);
     }
-    _queueCond.notify_all();
+    queue_cond_.notify_all();
 }
 
 // 日志线程的工作函数
 void Log::logThreadFunc1(int)
 {
-    // 睡眠3s，醒来后就将内存中的日志写入到文件中去
     while (true)
     {
         sleep(3);
@@ -148,10 +146,10 @@ void Log::logThreadFunc2(int)
     while (true)
     {
         {
-            std::unique_lock<std::mutex> lck(_queueMtx);
-            if (_bufferA.size() < MAX_QUEUE_SIZE)
+            std::unique_lock<std::mutex> lck(queue_mtx);
+            if (buffer_.size() < MAX_QUEUE_SIZE)
             {
-                _writeCond.wait(lck);
+                write_cond_.wait(lck);
             }
         }
         WriteToFile();
