@@ -27,7 +27,7 @@
 class HttpServer
 {
 public:
-    HttpServer(){};
+    //HttpServer(){};
     explicit HttpServer(int port, int timeout = 60, int thread_num = 8, int event_mode = 1,int loglevel = 1 );
     virtual ~HttpServer() = default;
 

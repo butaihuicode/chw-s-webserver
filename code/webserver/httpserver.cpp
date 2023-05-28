@@ -2,6 +2,8 @@
 // Created by challway on 2022/12/22.
 //
 #include "httpserver.h"
+using std::cout;
+using std::endl;
 
 HttpServer::HttpServer(int port, int timeout, int thread_num, int event_mode,int loglevel) {
     // getcwd(m_src_dir_,sizeof (m_src_dir_));
@@ -13,7 +15,7 @@ HttpServer::HttpServer(int port, int timeout, int thread_num, int event_mode,int
     epoller_ = std::make_unique<Epoller>();
     // getcwd(m_src_dir_,sizeof (m_src_dir_));
     // strcat(m_src_dir_, "/resources");
-    strcpy(m_src_dir_, "/media/psf/Home/Documents/vscode project/Httpserver_final/resources/");
+    strcpy(m_src_dir_, "/media/psf/Home/Documents/vscode project/Webserver/chw-s-webserver/resources/");
     HttpConn::m_url = m_src_dir_;
     InitEvents(event_mode);
     is_close_ = (!InitSocket());
@@ -57,7 +59,6 @@ bool HttpServer::InitSocket()
     sockaddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // 优雅关闭
-
     // 端口复用
     int reuse = 1;
     if (setsockopt(listenfd_, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuse, sizeof(reuse)) < 0)
@@ -94,6 +95,7 @@ bool HttpServer::InitSocket()
 
 void HttpServer::start()
 {
+    std::cout<< "is_close:" << is_close_ << std::endl;
     if (!is_close_)
     {
         std::cout << "============================";

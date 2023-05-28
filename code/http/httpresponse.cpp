@@ -2,6 +2,7 @@
 // Created by challway on 2022/12/3.
 //
 #include "httpresponse.h"
+#include <iostream>
 
 const std::unordered_map<std::string, std::string> HttpResponse::SUFFIX_TYPE{
     {".html", "text/html"},
@@ -67,6 +68,7 @@ void HttpResponse::_init(const std::string &path, bool is_alive, const std::stri
 bool HttpResponse::make_response(buffer &buff)
 {
     std::string path = m_src_dir + m_path;
+    std::cout << "path:" << path << std::endl;
     int stat_res = stat(path.c_str(), &m_stat);
     assert(stat_res == 0);
     // 400badrequest在httprequest就知道了，其他的需要查找文件才知道

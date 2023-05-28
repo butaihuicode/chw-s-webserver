@@ -201,19 +201,19 @@ void HttpRequest::parsePath()
         m_path += ".html";
     }
     // 客户端要访问文件列表
-    else if (m_path == "/list.json")
-    {
-        // 获取files目录里的文件列表
-        auto files = GetFiles("./files");
-        Json::Value root;
-        Json::Value file;
-        for (int i = 0; i < (int)files.size(); i++)
-        {
-            file["filename"] = files[i];
-            root.append(file);
-        }
-        WriteJson("./resources/list.json", root);
-    }
+    // else if (m_path == "/list.json")
+    // {
+    //     // 获取files目录里的文件列表
+    //     auto files = GetFiles("./files");
+    //     Json::Value root;
+    //     Json::Value file;
+    //     for (int i = 0; i < (int)files.size(); i++)
+    //     {
+    //         file["filename"] = files[i];
+    //         root.append(file);
+    //     }
+    //     WriteJson("./resources/list.json", root);
+    // }
 }
 
 HTTP_CODE HttpRequest::parse_body(const std::string &body)
@@ -373,20 +373,20 @@ std::vector<std::string> HttpRequest::GetFiles(const std::string &dir)
     return files;
 }
 
-void HttpRequest::WriteJson(const string &file, Json::Value root)
-{
-    std::ostringstream os;
-    Json::StreamWriterBuilder writerBuilder;
-    std::unique_ptr<Json::StreamWriter> jsonWriter(writerBuilder.newStreamWriter());
+// void HttpRequest::WriteJson(const string &file, Json::Value root)
+// {
+//     std::ostringstream os;
+//     Json::StreamWriterBuilder writerBuilder;
+//     std::unique_ptr<Json::StreamWriter> jsonWriter(writerBuilder.newStreamWriter());
 
-    jsonWriter->write(root, &os);
+//     jsonWriter->write(root, &os);
 
-    std::ofstream ofs;
-    ofs.open(file);
-    assert(ofs.is_open());
-    ofs << os.str();
-    ofs.close();
-}
+//     std::ofstream ofs;
+//     ofs.open(file);
+//     assert(ofs.is_open());
+//     ofs << os.str();
+//     ofs.close();
+// }
 
 // 判断register和post谁先？浏览器怎么知道是post？--网址先输入了，get到网页，点提交时候才是post
 void HttpRequest::HandleUserInfo()

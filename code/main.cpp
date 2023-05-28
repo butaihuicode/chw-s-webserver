@@ -56,8 +56,10 @@ int main(int argc, char *argv[])
     }
     if (ServerMode == 1)
     {
-        Reactor httpServer(port, timeout, threadNum, triMode,loglevel);
+        Reactor httpServer(port, timeout, threadNum, triMode, loglevel);
+        std::cout<< "s1" << std::endl;
         httpServer.start();
+        std::cout<< "s2" << std::endl;
     }
     else if (ServerMode == 2)
     {

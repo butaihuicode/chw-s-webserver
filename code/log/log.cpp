@@ -1,4 +1,4 @@
-#include "../../include/log/log.h"
+#include "log.h"
 
 Log::Log()
 {

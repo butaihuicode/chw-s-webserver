@@ -9,12 +9,15 @@
 #include <string>
 #include "sqlpoolraii.h"
 #include "../log/log.h"
-
+//这里不能这样声明，以为用到了实体，只用到指针时才能只声明不引入头文件
+// class SqlPool;
+// class SqlPoolRaii;
 /* const static std::string HOST = "127.0.0.1";
 const static std::string USER = "root";
 const static std::string PWD = "991005";
 const static std::string DBNAME = "webserver"; */
 // 本类目的是封装数据库对象和增删减改操作
+
 
 typedef MYSQL *MySQLptr;
 class MySQL

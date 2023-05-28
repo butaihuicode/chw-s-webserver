@@ -19,7 +19,7 @@
 #include <sstream>
 #include <ios>
 #include <dirent.h>
-#include <json/json.h>
+//#include <json/json.h>
 
 // 当前解析状态
 enum PARSE_STATE
@@ -76,7 +76,7 @@ private:
     // 获取文件列表
     std::vector<std::string> GetFiles(const std::string &dir);
     // 写入json文件
-    void WriteJson(const std::string &file, Json::Value root);
+    //void WriteJson(const std::string &file, Json::Value root);
 
     PARSE_STATE m_state;
     std::string m_method, m_path, m_version, m_body;

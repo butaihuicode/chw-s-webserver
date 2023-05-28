@@ -106,7 +106,7 @@ private:
 
 
 
-/*#include <unistd.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <mutex>
 #include <semaphore.h>
@@ -215,7 +215,7 @@ public:
     {
         return sem_trywait(&m_sem) == 0;
     }
-}; */
+}; 
 
 
 #endif // VSCODE_PROJECT_LOCKER_H

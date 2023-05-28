@@ -73,7 +73,7 @@ private:
     // 缓冲区的大小限制
     const int MAX_QUEUE_SIZE = 99999;
     // 使用互斥锁+条件变量
-    std::mutex write_cond_tx;
+    std::mutex queue_mtx;
     std::condition_variable queue_cond_;
     std::condition_variable write_cond_;
 
