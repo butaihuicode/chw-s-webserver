@@ -11,7 +11,7 @@ add_definitions(-Wall -g)
 add_definitions(-L/usr/lib/aarch64-linux-gnu -lmysqlclient -lzstd -lssl -lcrypto -lresolv -lm)
 
 
-add_subdirectory(code)
+
 
 
 
